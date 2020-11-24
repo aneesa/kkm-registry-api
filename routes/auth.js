@@ -32,4 +32,30 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// login
+router.post('/login', async (req, res) => {
+  try {
+    const { body: { email, password }} = req;
+
+    const user = await pool.query('SELECT * from users WHERE user_email = $1', [ email ]);
+
+    if (user.rows.length === 0) {
+      return res.status(401).send('Email or Password is incorrect');
+    }
+
+    const validPassword = await bcrypt.compare(password, user.rows[0].user_password);
+
+    if (!validPassword) {
+      return res.status(401).send('Email or Password is incorrect');
+    }
+
+    const token = jwtGenerator(user.rows[0].user_id);
+
+    res.json({ token });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
