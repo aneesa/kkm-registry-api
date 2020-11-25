@@ -1,9 +1,11 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const pool = require('../db');
-const jwtGenerator = require('../utils/jwtGenerator');
+const { generateAccessToken, generateRefreshToken } = require('../utils/jwtGenerator');
 const validInfo = require('../middleware/validInfo');
-const jwtAuthorization = require('../middleware/jwtAuthorization');
+const authorization = require('../middleware/authorization');
+require('dotenv').config();
 
 // register
 router.post('/register', validInfo, async (req, res) => {
@@ -25,9 +27,17 @@ router.post('/register', validInfo, async (req, res) => {
       'users (user_name, user_email, user_password) ' +
       'VALUES ($1, $2, $3) RETURNING *', [name, email, bcryptPassword]);
 
-    const token = jwtGenerator(newUser.rows[0].user_id);
+    const access_token = generateAccessToken(newUser.rows[0].user_id);
+    const refresh_token = generateRefreshToken(user.rows[0].user_id);
 
-    res.json({ token });
+    //Set refresh token in httpOnly cookie
+    const options = {
+        httpOnly: true,
+        signed: true
+    };
+    res.cookie('refresh_token', refresh_token, options);
+
+    res.json({ access_token });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Server Error' });
@@ -51,19 +61,36 @@ router.post('/login', validInfo, async (req, res) => {
       return res.status(401).json({ message: 'Email or Password is incorrect'});
     }
 
-    const token = jwtGenerator(user.rows[0].user_id);
+    const access_token = generateAccessToken(user.rows[0].user_id);
+    const refresh_token = generateRefreshToken(user.rows[0].user_id);
 
-    res.json({ token });
+    //Set refresh token in httpOnly cookie
+    const options = {
+        httpOnly: true,
+        signed: true
+    };
+    res.cookie('refresh_token', refresh_token, options);
+
+    res.json({ access_token });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Server Error'});
   }
 });
 
-// verfication
-router.get('/verify', jwtAuthorization, async (req, res) => {
+// verify
+router.get('/verify', authorization, async (req, res) => {
+  const newToken = req.newAccessToken ? {
+    access_token: req.newAccessToken,
+    user: req.user,
+  } : {};
+
   try {
-    res.json({ isAuthorized: true });
+    // can res set json without sending it first
+    res.json({
+      isAuthorized: true,
+      ...newToken,
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Server Error'});

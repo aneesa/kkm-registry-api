@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth.js');
@@ -9,6 +10,7 @@ const authRoutes = require('./routes/auth.js');
 
 app.use(express.json()); // req.body
 app.use(cors());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // ROUTES
 // register, login
