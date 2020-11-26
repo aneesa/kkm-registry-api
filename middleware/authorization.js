@@ -13,7 +13,9 @@ module.exports = async (req, res, next) => {
 
     const payload = jwt.verify(access_token, process.env.JWT_ACCESS_SECRET);
 
-    req.user = payload.user;
+    req.authorized = {
+      authorized_user_id: payload.user_id
+    };
 
     next();
 
@@ -28,7 +30,8 @@ module.exports = async (req, res, next) => {
 
         const payload = jwt.verify(refresh_token, process.env.JWT_REFRESH_SECRET);
 
-        const user = await pool.query('SELECT * from users WHERE user_id = $1', [ payload.user ]);
+        const user = await pool.query('SELECT logins.user_id, user_email, user_name, user_last_login '+
+          'FROM logins LEFT JOIN users ON logins.user_id = users.user_id WHERE logins.user_id = $1', [ payload.user_id ]);
 
         if (user.rows.length === 0) {
           return res.status(404).json({ message: 'Cannot find user' });
@@ -36,8 +39,10 @@ module.exports = async (req, res, next) => {
 
         const access_token = generateAccessToken(user.rows[0].user_id);
 
-        req.user = user.rows[0];
-        req.newAccessToken = access_token;
+        req.authorized = {
+          authorized_user: user.rows[0],
+          access_token: access_token,
+        };
 
         return next();
 

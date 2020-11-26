@@ -5,16 +5,16 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth.js');
+const usersRoutes = require('./routes/users.js');
 
-//middleware
-
+// middleware
 app.use(express.json()); // req.body
 app.use(cors());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // ROUTES
-// register, login
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', usersRoutes);
 
 app.use('/', (req, res) => {
   res.send('Server is running');
