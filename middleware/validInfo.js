@@ -1,23 +1,24 @@
-module.exports = function(req, res, next) {
-  const { email, name, password } = req.body;
+module.exports = function (req, res, next) {
+  const { email, name, password } = req.body
 
   function validEmail(userEmail) {
-    return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(userEmail);
+    // eslint-disable-next-line no-useless-escape
+    return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(userEmail)
   }
 
-  if (req.path === "/register") {
+  if (req.path === '/register') {
     if (![email, name, password].every(Boolean)) {
-      return res.status(401).json({ message: 'Missing Credentials' });
+      return res.status(401).json({ message: 'Missing Credentials' })
     } else if (!validEmail(email)) {
-      return res.status(401).json({ message: 'Invalid Email' });
+      return res.status(401).json({ message: 'Invalid Email' })
     }
-  } else if (req.path === "/login") {
+  } else if (req.path === '/login') {
     if (![email, password].every(Boolean)) {
-      return res.status(401).json({ message: 'Missing Credentials' });
+      return res.status(401).json({ message: 'Missing Credentials' })
     } else if (!validEmail(email)) {
-      return res.status(401).json({ message: 'Invalid Email' });
+      return res.status(401).json({ message: 'Invalid Email' })
     }
   }
 
-  next();
-};
+  next()
+}
