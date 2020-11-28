@@ -5,7 +5,13 @@ require('dotenv').config()
 
 module.exports = async (req, res, next) => {
   try {
-    const [bearer, access_token] = req.header('authorization').split(' ')
+    const authHeader = req.header('authorization')
+
+    if (authHeader === undefined) {
+      throw new jwt.TokenExpiredError()
+    }
+
+    const [bearer, access_token] = authHeader.split(' ')
 
     if (bearer.toLowerCase() !== 'bearer' || !access_token) {
       throw new Error('Not Authenticated')
@@ -14,7 +20,7 @@ module.exports = async (req, res, next) => {
     const payload = jwt.verify(access_token, process.env.JWT_ACCESS_SECRET)
 
     req.authorized = {
-      authorized_user_id: payload.user_id,
+      auth_user_id: payload.user_id,
     }
 
     next()
@@ -24,7 +30,7 @@ module.exports = async (req, res, next) => {
         const { refresh_token } = req.signedCookies
 
         if (!refresh_token) {
-          return res.status(401).json({ message: 'Token has expired' })
+          return res.status(404).json({ message: 'Token not found' })
         }
 
         const payload = jwt.verify(
@@ -45,7 +51,7 @@ module.exports = async (req, res, next) => {
         const access_token = generateAccessToken(user.rows[0].user_id)
 
         req.authorized = {
-          authorized_user: user.rows[0],
+          auth_user: user.rows[0],
           access_token: access_token,
         }
 

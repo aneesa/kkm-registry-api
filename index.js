@@ -12,7 +12,12 @@ const usersRoutes = require('./routes/users.js')
 
 // middleware
 app.use(express.json()) // req.body
-app.use(cors())
+app.use(
+  cors({
+    origin: process.env.KKM_REGISTRY_ORIGIN || 'http://localhost:4000',
+    credentials: true,
+  })
+)
 app.use(cookieParser(process.env.COOKIE_SECRET))
 
 // ROUTES

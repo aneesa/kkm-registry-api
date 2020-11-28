@@ -6,13 +6,14 @@ const {
   generateRefreshToken,
 } = require('../utils/jwtGenerator')
 const validInfo = require('../middleware/validInfo')
+const authorization = require('../middleware/authorization')
 require('dotenv').config()
 
 /**
  * @group auth - authentication & authorization
  * @route POST /auth/register
  * @param {Registering_User.model} user.body.required
- * @returns {Authorized.model} 200 - returns access_token, authorized_user + httpOnly cookie
+ * @returns {Authorized.model} 200 - returns access_token, auth_user + httpOnly cookie
  * @returns {Error.model} 401 - ERROR: User already exists
  * @returns {Error.model} 500 - ERROR: Server Error
  */
@@ -65,7 +66,7 @@ router.post('/register', validInfo, async (req, res) => {
 
     res.json({
       access_token,
-      authorized_user: {
+      auth_user: {
         user_id,
         user_email: email,
         user_name: name,
@@ -82,7 +83,7 @@ router.post('/register', validInfo, async (req, res) => {
  * @group auth - authentication & authorization
  * @route POST /auth/login
  * @param {Login_User.model} user.body.required
- * @returns {Authorized.model} 200 - returns access_token, authorized_user + httpOnly cookie
+ * @returns {Authorized.model} 200 - returns access_token, auth_user + httpOnly cookie
  * @returns {Error.model} 401 - ERROR: Email or Password is incorrect
  * @returns {Error.model} 500 - ERROR: Server Error
  */
@@ -133,13 +134,30 @@ router.post('/login', validInfo, async (req, res) => {
 
     res.json({
       access_token,
-      authorized_user: {
+      auth_user: {
         user_id,
         user_email: email,
         user_name: userRow.user_name,
         user_last_login: last_login,
       },
     })
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).json({ message: 'Server Error' })
+  }
+})
+
+/**
+ * @group auth - authentication & authorization
+ * @route GET /auth/rehydrate
+ * @returns {Authorized.model} 200 - returns access_token, auth_user + httpOnly cookie
+ * @returns {Error.model} 401 - ERROR: Token has expired
+ * @returns {Error.model} 404 - ERROR: Token not found
+ * @returns {Error.model} 500 - ERROR: Server Error
+ */
+router.get('/rehydrate', authorization, async (req, res) => {
+  try {
+    res.json(req.authorized)
   } catch (err) {
     console.error(err.message)
     res.status(500).json({ message: 'Server Error' })
