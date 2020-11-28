@@ -10,3 +10,9 @@ Clone it and run:
 yarn install
 yarn dev
 ```
+
+## TO DO
+
+### Supertest
+
+https://hackernoon.com/api-testing-using-supertest-1f830ce838f1

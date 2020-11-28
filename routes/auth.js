@@ -8,7 +8,14 @@ const {
 const validInfo = require('../middleware/validInfo')
 require('dotenv').config()
 
-// register
+/**
+ * @group auth - authentication & authorization
+ * @route POST /auth/register
+ * @param {Registering_User.model} user.body.required
+ * @returns {Authorized.model} 200 - returns access_token, authorized_user + httpOnly cookie
+ * @returns {Error.model} 401 - ERROR: User already exists
+ * @returns {Error.model} 500 - ERROR: Server Error
+ */
 router.post('/register', validInfo, async (req, res) => {
   try {
     const {
@@ -71,7 +78,14 @@ router.post('/register', validInfo, async (req, res) => {
   }
 })
 
-// login
+/**
+ * @group auth - authentication & authorization
+ * @route POST /auth/login
+ * @param {Login_User.model} user.body.required
+ * @returns {Authorized.model} 200 - returns access_token, authorized_user + httpOnly cookie
+ * @returns {Error.model} 401 - ERROR: Email or Password is incorrect
+ * @returns {Error.model} 500 - ERROR: Server Error
+ */
 router.post('/login', validInfo, async (req, res) => {
   try {
     const {

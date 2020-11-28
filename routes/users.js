@@ -2,7 +2,15 @@ const router = require('express').Router()
 const pool = require('../db')
 const authorization = require('../middleware/authorization')
 
-// get user userId
+/**
+ * @group users
+ * @route GET /users/{userId}
+ * @param {string} userId.path
+ * @returns {Get_User.model} 200 - returns authorized, user
+ * @returns {Error.model} 404 - ERROR: User id is not provided or Cannot find user
+ * @returns {Error.model} 500 - ERROR: Server Error
+ * @security JWT
+ */
 router.get('/:userId', authorization, async (req, res) => {
   try {
     const { userId } = req.params
@@ -22,7 +30,7 @@ router.get('/:userId', authorization, async (req, res) => {
     }
 
     res.json({
-      ...req.authorized,
+      authorized: req.authorized,
       user: user.rows[0],
     })
   } catch (err) {

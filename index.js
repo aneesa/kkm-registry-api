@@ -2,7 +2,10 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
+const expressSwagger = require('express-swagger-generator')(app)
 require('dotenv').config()
+
+const swaggerOptions = require('./swagger')
 
 const authRoutes = require('./routes/auth.js')
 const usersRoutes = require('./routes/users.js')
@@ -16,10 +19,10 @@ app.use(cookieParser(process.env.COOKIE_SECRET))
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/users', usersRoutes)
 
-app.use('/', (req, res) => {
-  res.send('Server is running')
-})
+expressSwagger(swaggerOptions)
 
 app.listen(process.env.SERVER_PORT || 3000, () => {
   console.log('server is running on port 3000')
 })
+
+module.exports = app
