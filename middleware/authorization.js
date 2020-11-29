@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const pool = require('../db')
+const dbUtils = require('../database/utils')
 const { generateAccessToken } = require('../utils/jwtGenerator')
 require('dotenv').config()
 
@@ -38,11 +38,14 @@ module.exports = async (req, res, next) => {
           process.env.JWT_REFRESH_SECRET
         )
 
-        const user = await pool.query(
-          'SELECT logins.user_id, user_email, user_name, user_last_login ' +
-            'FROM logins LEFT JOIN users ON logins.user_id = users.user_id WHERE logins.user_id = $1',
-          [payload.user_id]
-        )
+        const user = await dbUtils.selectQuery({
+          columns: 'logins.user_id, user_email, user_name, user_last_login',
+          tableName: 'logins',
+          leftJoin: 'users',
+          joinOn: 'logins.user_id = users.user_id',
+          where: 'logins.user_id = $1',
+          params: [payload.user_id],
+        })
 
         if (user.rows.length === 0) {
           return res.status(404).json({ message: 'Cannot find user' })

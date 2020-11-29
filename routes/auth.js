@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
-const pool = require('../db')
+const dbUtils = require('../database/utils')
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -23,10 +23,12 @@ router.post('/register', validInfo, async (req, res) => {
       body: { name, email, password },
     } = req
 
-    const login = await pool.query(
-      'SELECT * from logins WHERE user_email = $1',
-      [email]
-    )
+    const login = await dbUtils.selectQuery({
+      columns: 'user_email, user_last_login',
+      tableName: 'logins',
+      where: 'user_email = $1',
+      params: [email],
+    })
 
     if (login.rows.length !== 0) {
       return res.status(401).json({ message: 'User already exists' })
@@ -38,21 +40,23 @@ router.post('/register', validInfo, async (req, res) => {
     const bcryptPassword = await bcrypt.hash(password, salt)
 
     const last_login = new Date().toISOString()
+    console.log('last_login', last_login)
 
-    const newLogin = await pool.query(
-      'INSERT INTO ' +
-        'logins (user_email, user_password, user_last_login) ' +
-        'VALUES ($1, $2, $3) RETURNING user_id',
-      [email, bcryptPassword, last_login]
-    )
+    const newLogin = await dbUtils.insertQuery({
+      tableName: 'logins',
+      fields: ['user_email', 'user_password', 'user_last_login'],
+      returning: 'user_id',
+      params: [email, bcryptPassword, last_login],
+    })
 
     const loginRow = newLogin.rows[0]
     const user_id = loginRow.user_id
 
-    await pool.query(
-      'INSERT INTO ' + 'users (user_id, user_name) ' + 'VALUES ($1, $2)',
-      [user_id, name]
-    )
+    await dbUtils.insertQuery({
+      tableName: 'users',
+      fields: ['user_id', 'user_name'],
+      params: [user_id, name],
+    })
 
     const access_token = generateAccessToken(user_id)
     const refresh_token = generateRefreshToken(user_id)
@@ -93,11 +97,14 @@ router.post('/login', validInfo, async (req, res) => {
       body: { email, password },
     } = req
 
-    const user = await pool.query(
-      'SELECT logins.user_id, user_email, user_password, user_name ' +
-        'FROM logins LEFT JOIN users ON logins.user_id = users.user_id WHERE user_email = $1',
-      [email]
-    )
+    const user = await dbUtils.selectQuery({
+      columns: 'logins.user_id, user_password, user_email, user_name',
+      tableName: 'logins',
+      leftJoin: 'users',
+      joinOn: 'logins.user_id = users.user_id',
+      where: 'user_email = $1',
+      params: [email],
+    })
 
     if (user.rows.length === 0) {
       return res.status(401).json({ message: 'Email or Password is incorrect' })
@@ -117,10 +124,13 @@ router.post('/login', validInfo, async (req, res) => {
 
     // update last_login in login table
     const last_login = new Date().toISOString()
-    await pool.query(
-      'UPDATE logins SET user_last_login = $1' + 'WHERE user_id = $2',
-      [last_login, user_id]
-    )
+
+    await dbUtils.updateQuery({
+      tableName: 'logins',
+      set: 'user_last_login = $1',
+      where: 'user_id = $2',
+      params: [last_login, user_id],
+    })
 
     const access_token = generateAccessToken(user_id)
     const refresh_token = generateRefreshToken(user_id)
