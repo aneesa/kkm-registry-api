@@ -174,4 +174,14 @@ router.get('/rehydrate', authorization, async (req, res) => {
   }
 })
 
+/**
+ * @group auth - authentication & authorization
+ * @route DELETE /auth/logout
+ * @returns {} 200 - Logout successful
+ */
+router.delete('/logout', (req, res) => {
+  res.clearCookie('refresh_token')
+  res.json({ message: 'Logout successful' })
+})
+
 module.exports = router
