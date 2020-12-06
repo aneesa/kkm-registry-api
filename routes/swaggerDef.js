@@ -1,8 +1,13 @@
 /**
+ * @typedef Get_Authorized
+ * @property {Authorized.model} authorized
+ */
+
+/**
  * @typedef Authorized
+ * @property {boolean} is_authorized
  * @property {string} access_token
- * @property {string} authorized_user_id
- * @property {Authorized_User.model} authorized_user
+ * @property {Authorized_User.model} auth_user
  */
 
 /**

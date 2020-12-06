@@ -17,10 +17,12 @@ module.exports = async (req, res, next) => {
       throw new Error('Not Authenticated')
     }
 
+    // payload needs to be verified
+    // eslint-disable-next-line
     const payload = jwt.verify(access_token, process.env.JWT_ACCESS_SECRET)
 
     req.authorized = {
-      auth_user_id: payload.user_id,
+      is_authorized: true,
     }
 
     next()
@@ -48,7 +50,9 @@ module.exports = async (req, res, next) => {
         })
 
         if (user.rows.length === 0) {
-          return res.status(404).json({ message: 'Cannot find user' })
+          return res
+            .status(404)
+            .json({ message: 'Cannot find authorized user' })
         }
 
         const access_token = generateAccessToken(user.rows[0].user_id)
