@@ -6,14 +6,16 @@ function selectQuery({
   leftJoin = null,
   joinOn = null,
   where = null,
+  orderBy = null,
+  limit = null,
   params = [],
 }) {
-  return pool.query(
-    `SELECT ${columns || '*'} from ${tableName}${
-      leftJoin ? ` LEFT JOIN ${leftJoin} ON ${joinOn}` : ''
-    }${where ? ` WHERE ${where}` : ''}`,
-    params
-  )
+  const select = `SELECT ${columns || '*'} from ${tableName}${
+    leftJoin ? ` LEFT JOIN ${leftJoin} ON ${joinOn}` : ''
+  }${where ? ` WHERE ${where}` : ''}${orderBy ? ` ORDER BY ${orderBy}` : ''}${
+    limit ? ` LIMIT ${limit}` : ''
+  }`
+  return pool.query(select, params)
 }
 
 function insertQuery({
@@ -22,19 +24,17 @@ function insertQuery({
   returning = null,
   params = [],
 }) {
-  return pool.query(
-    `INSERT INTO ${tableName} (${fields.join()}) VALUES (${fields.map(
-      (f, idx) => `$${idx + 1}`
-    )})${returning ? ` RETURNING ${returning}` : ''}`,
-    params
-  )
+  const insert = `INSERT INTO ${tableName} (${fields.join()}) VALUES (${fields.map(
+    (f, idx) => `$${idx + 1}`
+  )})${returning ? ` RETURNING ${returning}` : ''}`
+  return pool.query(insert, params)
 }
 
 function updateQuery({ tableName, set, where = null, params = [] }) {
-  return pool.query(
-    `UPDATE ${tableName} SET ${set}${where ? ` WHERE ${where}` : ''}`,
-    params
-  )
+  const update = `UPDATE ${tableName} SET ${set}${
+    where ? ` WHERE ${where}` : ''
+  }`
+  return pool.query(update, params)
 }
 
 module.exports = {

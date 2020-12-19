@@ -40,7 +40,6 @@ router.post('/register', validInfo, async (req, res) => {
     const bcryptPassword = await bcrypt.hash(password, salt)
 
     const last_login = new Date().toISOString()
-    console.log('last_login', last_login)
 
     const newLogin = await dbUtils.insertQuery({
       tableName: 'logins',

@@ -40,6 +40,12 @@
  */
 
 /**
+ * @typedef Get_Users
+ * @property {Authorized.model} authorized
+ * @property {Array.<User>} users
+ */
+
+/**
  * @typedef Get_User
  * @property {Authorized.model} authorized
  * @property {User.model} user
