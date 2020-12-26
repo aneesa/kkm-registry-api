@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const winston = require('../winston')
 const dbUtils = require('../database/utils')
 const { generateAccessToken } = require('../utils/jwtGenerator')
 require('dotenv').config()
@@ -68,12 +69,12 @@ module.exports = async (req, res, next) => {
           return res.status(401).json({ message: 'Token has expired' })
         }
 
-        console.error(err.message)
+        winston.error(`Error: ${err?.message || err}`)
         return res.status(500).json({ message: 'Server Error' })
       }
     }
 
-    console.error(err.message)
+    winston.error(`Error: ${err?.message || err}`)
     return res.status(500).json({ message: 'Server Error' })
   }
 }

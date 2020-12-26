@@ -3,6 +3,8 @@ const app = express()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const expressSwagger = require('express-swagger-generator')(app)
+const morgan = require('morgan')
+const winston = require('./winston')
 require('dotenv').config()
 
 const swaggerOptions = require('./swagger')
@@ -19,6 +21,7 @@ app.use(
   })
 )
 app.use(cookieParser(process.env.COOKIE_SECRET))
+app.use(morgan('combined', { stream: winston.stream }))
 
 // ROUTES
 app.use('/api/v1/auth', authRoutes)
@@ -27,7 +30,7 @@ app.use('/api/v1/users', usersRoutes)
 expressSwagger(swaggerOptions)
 
 app.listen(process.env.SERVER_PORT || 3000, () => {
-  console.log('server is running on port 3000')
+  winston.info('server is running on port 3000')
 })
 
 module.exports = app

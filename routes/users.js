@@ -1,4 +1,5 @@
 const router = require('express').Router()
+const winston = require('../winston')
 const dbUtils = require('../database/utils')
 const authorization = require('../middleware/authorization')
 
@@ -62,7 +63,7 @@ router.get('/', authorization, async (req, res) => {
       hasMore: nextCount.rows[0].count > 0,
     })
   } catch (err) {
-    console.error(err.message)
+    winston.error(`Error: ${err?.message || err}`)
     res.status(500).json({ message: 'Server Error' })
   }
 })
@@ -102,7 +103,7 @@ router.get('/:userId', authorization, async (req, res) => {
       user: user.rows[0],
     })
   } catch (err) {
-    console.error(err.message)
+    winston.error(`Error: ${err?.message || err}`)
     res.status(500).json({ message: 'Server Error' })
   }
 })

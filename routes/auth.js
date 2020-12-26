@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
+const winston = require('../winston')
 const dbUtils = require('../database/utils')
 const {
   generateAccessToken,
@@ -79,7 +80,7 @@ router.post('/register', validInfo, async (req, res) => {
       },
     })
   } catch (err) {
-    console.error(err.message)
+    winston.error(`Error: ${err?.message || err}`)
     res.status(500).json({ message: 'Server Error' })
   }
 })
@@ -155,7 +156,7 @@ router.post('/login', validInfo, async (req, res) => {
       },
     })
   } catch (err) {
-    console.error(err.message)
+    winston.error(`Error: ${err?.message || err}`)
     res.status(500).json({ message: 'Server Error' })
   }
 })
@@ -172,7 +173,7 @@ router.get('/rehydrate', authorization, async (req, res) => {
   try {
     res.json({ authorized: req.authorized })
   } catch (err) {
-    console.error(err.message)
+    winston.error(`Error: ${err?.message || err}`)
     res.status(500).json({ message: 'Server Error' })
   }
 })
