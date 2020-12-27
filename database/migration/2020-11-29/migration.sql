@@ -7,6 +7,7 @@ CREATE TABLE logins(
   uuid_generate_v4(),
   user_email VARCHAR(255) UNIQUE NOT NULL,
   user_password VARCHAR(255) NOT NULL,
+  user_role VARCHAR(255) DEFAULT 'user' NOT NULL,
   user_last_login TIMESTAMP
 );
 
@@ -16,3 +17,5 @@ CREATE TABLE users(
   user_id uuid PRIMARY KEY REFERENCES logins,
   user_name VARCHAR(255) NOT NULL
 );
+
+-- test users: test+n@test.com/PassWord123!

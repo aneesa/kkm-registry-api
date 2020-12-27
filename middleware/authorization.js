@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 const winston = require('../winston')
 const dbUtils = require('../database/utils')
+const { generateJsonError } = require('../utils/error')
 const { generateAccessToken } = require('../utils/jwtGenerator')
 require('dotenv').config()
 
@@ -24,6 +25,7 @@ module.exports = async (req, res, next) => {
 
     req.authorized = {
       is_authorized: true,
+      auth_user: { user_id: payload?.user_id, user_role: payload?.user_role },
     }
 
     next()
@@ -33,7 +35,11 @@ module.exports = async (req, res, next) => {
         const { refresh_token } = req.signedCookies
 
         if (!refresh_token) {
-          return res.status(404).json({ message: 'Token not found' })
+          return generateJsonError({
+            res,
+            status: 404,
+            message: 'Token not found',
+          })
         }
 
         const payload = jwt.verify(
@@ -42,7 +48,8 @@ module.exports = async (req, res, next) => {
         )
 
         const user = await dbUtils.selectQuery({
-          columns: 'logins.user_id, user_email, user_name, user_last_login',
+          columns:
+            'logins.user_id, user_email, user_name, user_role, user_last_login',
           tableName: 'logins',
           leftJoin: 'users',
           joinOn: 'logins.user_id = users.user_id',
@@ -51,30 +58,40 @@ module.exports = async (req, res, next) => {
         })
 
         if (user.rows.length === 0) {
-          return res
-            .status(404)
-            .json({ message: 'Cannot find authorized user' })
+          return generateJsonError({
+            res,
+            status: 404,
+            message: 'Cannot find authorized user',
+          })
         }
 
-        const access_token = generateAccessToken(user.rows[0].user_id)
+        const userRow = user.rows[0]
+        const user_id = userRow.user_id
+        const user_role = userRow.user_role
+
+        const access_token = generateAccessToken(user_id, user_role)
 
         req.authorized = {
-          auth_user: user.rows[0],
+          auth_user: userRow,
           access_token: access_token,
         }
 
         return next()
       } catch (err) {
         if (err instanceof jwt.TokenExpiredError) {
-          return res.status(401).json({ message: 'Token has expired' })
+          return generateJsonError({
+            res,
+            status: 401,
+            message: 'Token has expired',
+          })
         }
 
         winston.error(`Error: ${err?.message || err}`)
-        return res.status(500).json({ message: 'Server Error' })
+        return generateJsonError({ res })
       }
     }
 
     winston.error(`Error: ${err?.message || err}`)
-    return res.status(500).json({ message: 'Server Error' })
+    return generateJsonError({ res })
   }
 }

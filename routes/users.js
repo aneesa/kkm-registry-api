@@ -2,6 +2,8 @@ const router = require('express').Router()
 const winston = require('../winston')
 const dbUtils = require('../database/utils')
 const authorization = require('../middleware/authorization')
+const { generateJsonError } = require('../utils/error')
+const { isAdmin, isSelf } = require('../utils/role')
 
 /**
  * @group users
@@ -11,10 +13,22 @@ const authorization = require('../middleware/authorization')
  * @param {string} email.query - searched email
  * @param {string} name.query - searched name
  * @returns {Get_Users.model} 200 - returns authorized, users
+ * @returns {Error.model} 403 - ERROR: Not authorized
  * @returns {Error.model} 500 - ERROR: Server Error
  * @security JWT
  */
 router.get('/', authorization, async (req, res) => {
+  const { authorized } = req
+
+  // only admin can get the users list
+  if (!isAdmin(authorized)) {
+    return generateJsonError({
+      res,
+      status: 403,
+      authorized,
+    })
+  }
+
   try {
     const {
       last_email = null,
@@ -43,7 +57,7 @@ router.get('/', authorization, async (req, res) => {
 
     if (users.rows.length === 0) {
       return res.json({
-        authorized: req.authorized,
+        authorized,
         users: [],
       })
     }
@@ -58,13 +72,13 @@ router.get('/', authorization, async (req, res) => {
     })
 
     res.json({
-      authorized: req.authorized,
+      authorized,
       users: users.rows,
       hasMore: nextCount.rows[0].count > 0,
     })
   } catch (err) {
     winston.error(`Error: ${err?.message || err}`)
-    res.status(500).json({ message: 'Server Error' })
+    return generateJsonError({ res })
   }
 })
 
@@ -73,16 +87,33 @@ router.get('/', authorization, async (req, res) => {
  * @route GET /users/{userId}
  * @param {string} userId.path
  * @returns {Get_User.model} 200 - returns authorized, user
+ * @returns {Error.model} 403 - ERROR: Not authorized
  * @returns {Error.model} 404 - ERROR: User id is not provided or Cannot find user
  * @returns {Error.model} 500 - ERROR: Server Error
  * @security JWT
  */
 router.get('/:userId', authorization, async (req, res) => {
-  try {
-    const { userId } = req.params
+  const { authorized } = req
+  const { userId } = req.params
 
+  // only admin can view other user
+  // user can only view himself/herself
+  if (!isAdmin(authorized) && !isSelf(authorized, userId)) {
+    return generateJsonError({
+      res,
+      status: 403,
+      authorized,
+    })
+  }
+
+  try {
     if (!userId) {
-      return res.status(404).json({ message: 'User id is not provided' })
+      return generateJsonError({
+        res,
+        status: 404,
+        message: 'User id is not provided',
+        authorized,
+      })
     }
 
     const user = await dbUtils.selectQuery({
@@ -95,16 +126,21 @@ router.get('/:userId', authorization, async (req, res) => {
     })
 
     if (user.rows.length === 0) {
-      return res.status(404).json({ message: 'Cannot find user' })
+      return generateJsonError({
+        res,
+        status: 404,
+        message: 'Cannot find user',
+        authorized,
+      })
     }
 
     res.json({
-      authorized: req.authorized,
+      authorized,
       user: user.rows[0],
     })
   } catch (err) {
     winston.error(`Error: ${err?.message || err}`)
-    res.status(500).json({ message: 'Server Error' })
+    return generateJsonError({ res })
   }
 })
 

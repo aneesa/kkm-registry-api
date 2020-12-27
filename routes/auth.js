@@ -2,12 +2,13 @@ const router = require('express').Router()
 const bcrypt = require('bcrypt')
 const winston = require('../winston')
 const dbUtils = require('../database/utils')
+const authorization = require('../middleware/authorization')
+const validInfo = require('../middleware/validInfo')
+const { generateJsonError } = require('../utils/error')
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require('../utils/jwtGenerator')
-const validInfo = require('../middleware/validInfo')
-const authorization = require('../middleware/authorization')
 require('dotenv').config()
 
 /**
@@ -32,7 +33,11 @@ router.post('/register', validInfo, async (req, res) => {
     })
 
     if (login.rows.length !== 0) {
-      return res.status(401).json({ message: 'User already exists' })
+      return generateJsonError({
+        res,
+        status: 401,
+        message: 'User already exists',
+      })
     }
 
     const saltRound = 10
@@ -58,8 +63,9 @@ router.post('/register', validInfo, async (req, res) => {
       params: [user_id, name],
     })
 
-    const access_token = generateAccessToken(user_id)
-    const refresh_token = generateRefreshToken(user_id)
+    // TODO: if there are more user roles in the future, keep them in a table
+    const access_token = generateAccessToken(user_id, 'user')
+    const refresh_token = generateRefreshToken(user_id, 'user')
 
     //Set refresh token in httpOnly cookie
     const options = {
@@ -75,13 +81,14 @@ router.post('/register', validInfo, async (req, res) => {
           user_id,
           user_email: email,
           user_name: name,
+          user_role: 'user',
           user_last_login: last_login,
         },
       },
     })
   } catch (err) {
     winston.error(`Error: ${err?.message || err}`)
-    res.status(500).json({ message: 'Server Error' })
+    return generateJsonError({ res })
   }
 })
 
@@ -100,7 +107,8 @@ router.post('/login', validInfo, async (req, res) => {
     } = req
 
     const user = await dbUtils.selectQuery({
-      columns: 'logins.user_id, user_password, user_email, user_name',
+      columns:
+        'logins.user_id, user_password, user_email, user_name, user_role',
       tableName: 'logins',
       leftJoin: 'users',
       joinOn: 'logins.user_id = users.user_id',
@@ -109,7 +117,11 @@ router.post('/login', validInfo, async (req, res) => {
     })
 
     if (user.rows.length === 0) {
-      return res.status(401).json({ message: 'Email or Password is incorrect' })
+      return generateJsonError({
+        res,
+        status: 401,
+        message: 'Cannot find user',
+      })
     }
 
     const validPassword = await bcrypt.compare(
@@ -118,11 +130,16 @@ router.post('/login', validInfo, async (req, res) => {
     )
 
     if (!validPassword) {
-      return res.status(401).json({ message: 'Email or Password is incorrect' })
+      return generateJsonError({
+        res,
+        status: 401,
+        message: 'Email or Password is incorrect',
+      })
     }
 
     const userRow = user.rows[0]
     const user_id = userRow.user_id
+    const user_role = userRow.user_role
 
     // update last_login in login table
     const last_login = new Date().toISOString()
@@ -134,8 +151,8 @@ router.post('/login', validInfo, async (req, res) => {
       params: [last_login, user_id],
     })
 
-    const access_token = generateAccessToken(user_id)
-    const refresh_token = generateRefreshToken(user_id)
+    const access_token = generateAccessToken(user_id, user_role)
+    const refresh_token = generateRefreshToken(user_id, user_role)
 
     //Set refresh token in httpOnly cookie
     const options = {
@@ -151,13 +168,14 @@ router.post('/login', validInfo, async (req, res) => {
           user_id,
           user_email: email,
           user_name: userRow.user_name,
+          user_role: userRow.user_role,
           user_last_login: last_login,
         },
       },
     })
   } catch (err) {
     winston.error(`Error: ${err?.message || err}`)
-    res.status(500).json({ message: 'Server Error' })
+    return generateJsonError({ res })
   }
 })
 
@@ -174,7 +192,7 @@ router.get('/rehydrate', authorization, async (req, res) => {
     res.json({ authorized: req.authorized })
   } catch (err) {
     winston.error(`Error: ${err?.message || err}`)
-    res.status(500).json({ message: 'Server Error' })
+    return generateJsonError({ res })
   }
 })
 

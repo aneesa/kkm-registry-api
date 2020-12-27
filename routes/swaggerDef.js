@@ -1,3 +1,5 @@
+// https://github.com/pgroot/express-swagger-generator
+
 /**
  * @typedef Get_Authorized
  * @property {Authorized.model} authorized
@@ -13,9 +15,10 @@
 /**
  * @typedef Authorized_User
  * @property {string} user_id.required
- * @property {string} user_email.required
- * @property {string} user_name.required
- * @property {string} user_last_login.required
+ * @property {string} user_email
+ * @property {string} user_name
+ * @property {string} user_role
+ * @property {string} user_last_login
  */
 
 /**
@@ -54,4 +57,5 @@
 /**
  * @typedef Error
  * @property {string} message
+ * @property {Authorized.model} authorized
  */

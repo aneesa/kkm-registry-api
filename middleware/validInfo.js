@@ -1,3 +1,5 @@
+const { generateJsonError } = require('../utils/error')
+
 module.exports = function (req, res, next) {
   const { email, name, password } = req.body
 
@@ -10,15 +12,31 @@ module.exports = function (req, res, next) {
 
   if (req.path === '/register') {
     if (![email, name, password].every(Boolean)) {
-      return res.status(401).json({ message: 'Missing Credentials' })
+      return generateJsonError({
+        res,
+        status: 401,
+        message: 'Missing Credentials',
+      })
     } else if (!validEmail(email)) {
-      return res.status(401).json({ message: 'Invalid Email' })
+      return generateJsonError({
+        res,
+        status: 401,
+        message: 'Invalid Email',
+      })
     }
   } else if (req.path === '/login') {
     if (![email, password].every(Boolean)) {
-      return res.status(401).json({ message: 'Missing Credentials' })
+      return generateJsonError({
+        res,
+        status: 401,
+        message: 'Missing Credentials',
+      })
     } else if (!validEmail(email)) {
-      return res.status(401).json({ message: 'Invalid Email' })
+      return generateJsonError({
+        res,
+        status: 401,
+        message: 'Invalid Email',
+      })
     }
   }
 
