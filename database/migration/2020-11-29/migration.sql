@@ -15,7 +15,10 @@ CREATE UNIQUE INDEX idx_logins_on_email_asc ON logins USING btree (user_email AS
 
 CREATE TABLE users(
   user_id uuid PRIMARY KEY REFERENCES logins,
-  user_name VARCHAR(255) NOT NULL
+  user_name VARCHAR(255) NOT NULL,
+  user_membership_no VARCHAR(255),
+  user_phone_no VARCHAR(255),
+  user_home_address VARCHAR(255)
 );
 
 -- test users: test+n@test.com/PassWord123!

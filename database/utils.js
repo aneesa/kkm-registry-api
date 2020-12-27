@@ -37,8 +37,28 @@ function updateQuery({ tableName, set, where = null, params = [] }) {
   return tx(update, params)
 }
 
+function parseUpdatedBody({ body }) {
+  let updatedSet = ''
+  let updatedParams = []
+  Object.entries(body).forEach(([key, value]) => {
+    if (value || value === 0) {
+      updatedSet = `${updatedSet} ${key} = $${updatedParams.length + 1},`
+      updatedParams.push(value)
+    }
+  })
+
+  updatedSet = updatedSet.trim() // remove the front space
+  updatedSet = updatedSet.slice(0, -1) // remove the last ,
+
+  return {
+    updatedSet,
+    updatedParams,
+  }
+}
+
 module.exports = {
   selectQuery,
   insertQuery,
   updateQuery,
+  parseUpdatedBody,
 }

@@ -36,10 +36,13 @@
 
 /**
  * @typedef User
- * @property {string} user_id.required
- * @property {string} user_email.required
+ * @property {string} user_id
+ * @property {string} user_email
  * @property {string} user_name
- * @property {string} user_last_login.required
+ * @property {string} user_membership_no
+ * @property {string} user_phone_no
+ * @property {string} user_home_address
+ * @property {string} user_last_login
  */
 
 /**
