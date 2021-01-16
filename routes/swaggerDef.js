@@ -43,6 +43,7 @@
  * @property {string} user_phone_no
  * @property {string} user_home_address
  * @property {string} user_last_login
+ * @property {string} user_role
  */
 
 /**

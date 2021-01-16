@@ -49,7 +49,7 @@ module.exports = async (req, res, next) => {
 
         const user = await dbUtils.selectQuery({
           columns:
-            'logins.user_id, user_email, user_name, user_role, user_last_login',
+            'logins.user_id, user_role, user_email, user_name, user_role, user_last_login',
           tableName: 'logins',
           leftJoin: 'users',
           joinOn: 'logins.user_id = users.user_id',
