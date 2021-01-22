@@ -29,6 +29,12 @@
  */
 
 /**
+ * @typedef Registered_User
+ * @property {Authorized.model} authorized
+ * @property {User.model} user
+ */
+
+/**
  * @typedef Login_User
  * @property {string} email.required
  * @property {string} password.required
