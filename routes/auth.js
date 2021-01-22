@@ -15,7 +15,7 @@ require('dotenv').config()
  * @group auth - authentication & authorization
  * @route POST /auth/register
  * @param {Registering_User.model} user.body.required
- * @returns {Get_Authorized.model} 200 - returns access_token, auth_user + httpOnly cookie
+ * @returns {Registered_User.model} 200 - returns access_token, auth_user + httpOnly cookie
  * @returns {Error.model} 401 - ERROR: User already exists
  * @returns {Error.model} 500 - ERROR: Server Error
  */
@@ -84,6 +84,13 @@ router.post('/register', validInfo, async (req, res) => {
           user_role: 'user',
           user_last_login: last_login,
         },
+      },
+      user: {
+        user_id,
+        user_email: email,
+        user_name: name,
+        user_role: 'user',
+        user_last_login: last_login,
       },
     })
   } catch (err) {
