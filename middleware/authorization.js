@@ -51,8 +51,12 @@ module.exports = async (req, res, next) => {
           columns:
             'logins.user_id, user_role, user_email, user_name, user_role, user_last_login',
           tableName: 'logins',
-          leftJoin: 'users',
-          joinOn: 'logins.user_id = users.user_id',
+          leftJoins: [
+            {
+              tableName: 'users',
+              joinOn: 'logins.user_id = users.user_id',
+            },
+          ],
           where: 'logins.user_id = $1',
           params: [payload.user_id],
         })

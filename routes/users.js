@@ -53,9 +53,15 @@ router.patch('/:userId', authorization, async (req, res) => {
   try {
     const user = await dbUtils.selectQuery({
       columns:
-        'user_id, user_name, user_membership_no, user_phone_no, user_home_address',
+        'users.user_id, user_name, user_membership_no, user_phone_no, user_home_address',
       tableName: 'users',
-      where: 'user_id = $1',
+      leftJoins: [
+        {
+          tableName: 'memberships',
+          joinOn: 'users.user_id = memberships.user_id',
+        },
+      ],
+      where: 'users.user_id = $1',
       params: [userId],
     })
 
@@ -139,10 +145,15 @@ router.get('/:userId', authorization, async (req, res) => {
   try {
     const user = await dbUtils.selectQuery({
       columns:
-        'logins.user_id, user_role, user_email, user_name, user_last_login, user_membership_no, user_phone_no, user_home_address',
+        'logins.user_id, user_email, user_role, user_last_login, user_name, user_phone_no, user_home_address, user_membership_no, status user_membership_status',
       tableName: 'logins',
-      leftJoin: 'users',
-      joinOn: 'logins.user_id = users.user_id',
+      leftJoins: [
+        { tableName: 'users', joinOn: 'logins.user_id = users.user_id' },
+        {
+          tableName: 'memberships',
+          joinOn: 'logins.user_id = memberships.user_id',
+        },
+      ],
       where: 'logins.user_id = $1',
       params: [userId],
     })
@@ -210,8 +221,13 @@ router.get('/', authorization, async (req, res) => {
       columns:
         'logins.user_id, user_role, user_email, user_name, user_last_login, user_membership_no, user_phone_no, user_home_address',
       tableName: 'logins',
-      leftJoin: 'users',
-      joinOn: 'logins.user_id = users.user_id',
+      leftJoins: [
+        { tableName: 'users', joinOn: 'logins.user_id = users.user_id' },
+        {
+          tableName: 'memberships',
+          joinOn: 'logins.user_id = memberships.user_id',
+        },
+      ],
       where,
       orderBy: 'user_email ASC',
       limit,

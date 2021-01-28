@@ -11,6 +11,7 @@ const swaggerOptions = require('./swagger')
 
 const authRoutes = require('./routes/auth.js')
 const usersRoutes = require('./routes/users.js')
+const membershipsRoutes = require('./routes/memberships.js')
 
 // middleware
 app.use(express.json()) // req.body
@@ -26,6 +27,7 @@ app.use(morgan('combined', { stream: winston.stream }))
 // ROUTES
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/users', usersRoutes)
+app.use('/api/v1/memberships', membershipsRoutes)
 
 expressSwagger(swaggerOptions)
 

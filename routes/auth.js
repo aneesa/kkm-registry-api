@@ -117,8 +117,9 @@ router.post('/login', validInfo, async (req, res) => {
       columns:
         'logins.user_id, user_password, user_email, user_name, user_role',
       tableName: 'logins',
-      leftJoin: 'users',
-      joinOn: 'logins.user_id = users.user_id',
+      leftJoins: [
+        { tableName: 'users', joinOn: 'logins.user_id = users.user_id' },
+      ],
       where: 'user_email = $1',
       params: [email],
     })
