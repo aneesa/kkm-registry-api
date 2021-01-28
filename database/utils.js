@@ -3,18 +3,24 @@ const tx = require('./config')
 function selectQuery({
   columns = null,
   tableName,
-  leftJoin = null,
-  joinOn = null,
+  leftJoins = null, // [{ tableName, joinOn }]
   where = null,
   orderBy = null,
   limit = null,
   params = [],
 }) {
-  const select = `SELECT ${columns || '*'} from ${tableName}${
-    leftJoin ? ` LEFT JOIN ${leftJoin} ON ${joinOn}` : ''
-  }${where ? ` WHERE ${where}` : ''}${orderBy ? ` ORDER BY ${orderBy}` : ''}${
-    limit ? ` LIMIT ${limit}` : ''
-  }`
+  const leftJoinQuery = leftJoins
+    ? leftJoins.reduce((result, { tableName, joinOn }) => {
+        if (tableName && joinOn) {
+          return `${result} LEFT JOIN ${tableName} ON ${joinOn}`
+        }
+        return result
+      }, '')
+    : ''
+
+  const select = `SELECT ${columns || '*'} from ${tableName}${leftJoinQuery}${
+    where ? ` WHERE ${where}` : ''
+  }${orderBy ? ` ORDER BY ${orderBy}` : ''}${limit ? ` LIMIT ${limit}` : ''}`
   return tx(select, params)
 }
 

@@ -1,8 +1,25 @@
 // https://github.com/pgroot/express-swagger-generator
 
 /**
- * @typedef Get_Authorized
- * @property {Authorized.model} authorized
+ * @typedef User
+ * @property {string} user_id
+ * @property {string} user_email
+ * @property {string} user_name
+ * @property {string} user_membership_no
+ * @property {string} user_membership_status
+ * @property {string} user_phone_no
+ * @property {string} user_home_address
+ * @property {string} user_last_login
+ * @property {string} user_role
+ */
+
+/**
+ * @typedef Authorized_User
+ * @property {string} user_id.required
+ * @property {string} user_email
+ * @property {string} user_name
+ * @property {string} user_role
+ * @property {string} user_last_login
  */
 
 /**
@@ -13,12 +30,17 @@
  */
 
 /**
- * @typedef Authorized_User
- * @property {string} user_id.required
+ * @typedef Membership
+ * @property {string} membership_id
+ * @property {string} user_id
  * @property {string} user_email
  * @property {string} user_name
- * @property {string} user_role
- * @property {string} user_last_login
+ * @property {string} requested_on
+ */
+
+/**
+ * @typedef Get_Authorized
+ * @property {Authorized.model} authorized
  */
 
 /**
@@ -41,18 +63,6 @@
  */
 
 /**
- * @typedef User
- * @property {string} user_id
- * @property {string} user_email
- * @property {string} user_name
- * @property {string} user_membership_no
- * @property {string} user_phone_no
- * @property {string} user_home_address
- * @property {string} user_last_login
- * @property {string} user_role
- */
-
-/**
  * @typedef Get_Users
  * @property {Authorized.model} authorized
  * @property {Array.<User>} users
@@ -62,6 +72,18 @@
  * @typedef Get_User
  * @property {Authorized.model} authorized
  * @property {User.model} user
+ */
+
+/**
+ * @typedef Post_Membership
+ * @property {Authorized.model} authorized
+ * @property {string} user_membership_status
+ */
+
+/**
+ * @typedef Get_Memberships
+ * @property {Authorized.model} authorized
+ * @property {Array.<Membership>} memberships
  */
 
 /**
