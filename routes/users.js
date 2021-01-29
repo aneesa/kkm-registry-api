@@ -144,7 +144,7 @@ router.get('/:userId', authorization, async (req, res) => {
   try {
     const user = await dbUtils.selectQuery({
       columns:
-        'logins.user_id, user_email, user_role, user_last_login, user_name, user_phone_no, user_home_address, user_membership_no, status user_membership_status',
+        'logins.user_id, user_email, user_role, user_last_login, user_name, user_phone_no, user_home_address, user_membership_no, status user_membership_status, requested_on user_membership_requested_on',
       tableName: 'logins',
       leftJoins: [
         { tableName: 'users', joinOn: 'logins.user_id = users.user_id' },

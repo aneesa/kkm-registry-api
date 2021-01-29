@@ -8,7 +8,7 @@ const { isAdmin } = require('../utils/role')
 /**
  * @group memberships
  * @route POST /memberships
- * @returns {Post_Membership.model} 200 - returns authorized, user_membership_status
+ * @returns {Post_Membership.model} 200 - returns authorized, user_membership_status, user_membership_requested_on
  * @returns {Error.model} 403 - ERROR: Not authorized
  * @returns {Error.model} 500 - ERROR: Server Error
  * @security JWT
@@ -25,13 +25,14 @@ router.post('/', authorization, async (req, res) => {
     const newMembership = await dbUtils.insertQuery({
       tableName: 'memberships',
       fields: ['user_id', 'requested_on'],
-      returning: 'status user_membership_status',
+      returning: 'status, requested_on',
       params: [user_id, requested_on],
     })
 
     res.json({
       authorized,
-      user_membership_status: newMembership.rows[0].user_membership_status,
+      user_membership_status: newMembership.rows[0].status,
+      user_membership_requested_on: newMembership.rows[0].requested_on,
     })
   } catch (err) {
     winston.error(`Error: ${err?.message || err}`)

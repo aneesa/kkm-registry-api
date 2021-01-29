@@ -7,6 +7,7 @@
  * @property {string} user_name
  * @property {string} user_membership_no
  * @property {string} user_membership_status
+ * @property {string} user_membership_requested_on
  * @property {string} user_phone_no
  * @property {string} user_home_address
  * @property {string} user_last_login
@@ -78,6 +79,7 @@
  * @typedef Post_Membership
  * @property {Authorized.model} authorized
  * @property {string} user_membership_status
+ * @property {string} user_membership_requested_on
  */
 
 /**
