@@ -52,8 +52,7 @@ router.patch('/:userId', authorization, async (req, res) => {
 
   try {
     const user = await dbUtils.selectQuery({
-      columns:
-        'users.user_id, user_name, user_membership_no, user_phone_no, user_home_address',
+      columns: 'users.user_id',
       tableName: 'users',
       leftJoins: [
         {
