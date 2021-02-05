@@ -20,13 +20,11 @@ router.post('/', authorization, async (req, res) => {
   } = authorized
 
   try {
-    const requested_on = new Date().toISOString()
-
     const newMembership = await dbUtils.insertQuery({
       tableName: 'memberships',
-      fields: ['user_id', 'requested_on'],
+      fields: ['user_id'],
       returning: 'status, requested_on',
-      params: [user_id, requested_on],
+      params: [user_id],
     })
 
     res.json({
@@ -47,6 +45,7 @@ router.post('/', authorization, async (req, res) => {
  * @param {string} limit.query - limit per page
  * @param {string} email.query - searched email
  * @param {string} name.query - searched name
+ * @param {string} status.query - searched status
  * @returns {Get_Memberships.model} 200 - returns authorized, users
  * @returns {Error.model} 403 - ERROR: Not authorized
  * @returns {Error.model} 500 - ERROR: Server Error
@@ -70,21 +69,26 @@ router.get('/', authorization, async (req, res) => {
       limit = 25,
       email = null,
       name = null,
+      status = null,
     } = req.query
 
     let where = email ? `user_email like '%${email}%'` : ''
     where = name
       ? `${where ? `${where} AND ` : ''}user_name like '%${name}%'`
       : where
+    where = status
+      ? `${where ? `${where} AND ` : ''}status like '%${status}%'`
+      : where
     where = last_requested_on
       ? `${
           where ? `${where} AND ` : ''
-        }(requested_on) > ('${last_requested_on}')`
+        }(requested_on::timestamptz(0)) > ('${new Date(
+          last_requested_on
+        ).toISOString()}'::timestamptz(0))`
       : where
 
     const memberships = await dbUtils.selectQuery({
-      columns:
-        'membership_id, memberships.user_id, user_email, user_name, requested_on',
+      columns: 'memberships.user_id, user_email, user_name, requested_on',
       tableName: 'memberships',
       leftJoins: [
         { tableName: 'logins', joinOn: 'memberships.user_id = logins.user_id' },
@@ -93,7 +97,7 @@ router.get('/', authorization, async (req, res) => {
           joinOn: 'memberships.user_id = users.user_id',
         },
       ],
-      where: `${where} AND status = 'request'`,
+      where,
       orderBy: 'requested_on ASC',
       limit,
     })
@@ -109,9 +113,9 @@ router.get('/', authorization, async (req, res) => {
 
     // find next count
     const nextCount = await dbUtils.selectQuery({
-      columns: 'count(membership_id)',
+      columns: 'count(user_id)',
       tableName: 'memberships',
-      where: `(requested_on) > ('${lastRow.requested_on}') AND status = 'request'`,
+      where: `(requested_on::timestamptz(0)) > ('${lastRow.requested_on.toISOString()}'::timestamptz(0))`,
     })
 
     res.json({

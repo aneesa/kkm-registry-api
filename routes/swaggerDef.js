@@ -32,7 +32,6 @@
 
 /**
  * @typedef Membership
- * @property {string} membership_id
  * @property {string} user_id
  * @property {string} user_email
  * @property {string} user_name
